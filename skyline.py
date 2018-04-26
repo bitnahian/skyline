@@ -1,48 +1,60 @@
 def merge_outlines(left_outline, right_outline):
+    merged_outline = []
     size_left = len(left_outline)
     size_right = len(right_outline)
 
     # Recreate the merge step in your merge sort
     i, j, h1, h2 = 0, 0, 0, 0 # h1 -> last_seen height of left outline and h2 -> last seen of right
     while(i < size_left and j < size_right):
-        to_merge = [0,0]
         left = left_outline[i]
         right = right_outline[j]
 
-        if left[0] < right[0]:
-            # If the x-coordinate of the left outline is smaller
-            # Add that outline to the solution
-            to_merge[0] = left[0]
-            to_merge[1] = left[1]
+        if left[0] < right[0]: # If the x-coordinate of the left-outline is more to the left
+            x1 = left[0]
+            h1 = left[1]
 
-            if(left[1] < h2):
-                # If the height that we selected is smaller than the previous height of the other outline
-                to_merge[1] = h2
-            h2 = right[1] # Update the last-seen height of right outline
-            i+=1 # Update pointer to left-outline as it has been added
+            maxh = max(h1, h2)
+            merged_outline.append([x1, maxh])
+            i += 1
         elif right[0] < left[0]:
-            # If the x-coordinate of the right outline is smaller
-            # Add that outline to the solution
-            to_merge[0] = right[0]
-            to_merge[1] = right[1]
+            x2 = right[0]
+            h2 = right[1]
 
-            if(right[1] < h1):
-                # If the height of the outline we addded is smaller than the last seen height of the other outline
-                to_merge[1] = h2
-            h1 = left[1] # Updae the last-seen height of the left outline
+            maxh = max(h1, h2)
+            merged_outline.append([x2, maxh])
             j+=1
         else:
-            # Corner case when both the x-coordinates of left and right are the same
-            # Choose the point with the greater height
-            to_merge[0] = left[0]
-            to_merge[1] = max(left[1], right[1])
+            h1 = left[1]
+            h2 = right[1]
 
-            # Update last seen height for both
-            h1, h2 = left[1], right[1]
+            maxh = max(h1,h2)
+            merged_outline.append([left[0], maxh])
             i += 1
             j += 1
-
         # end of while loop
+    while i < size_left:
+        # While there are still elements inside the left_outline
+        merged_outline.append(left_outline[i])
+        i += 1
+
+    while j < size_right:
+        # While there are still elements inside the right_outline
+        merged_outline.append(right_outline[j])
+        j += 1
+        # Removal of redundant points from the outline
+    curr = 0
+    while curr < len(merged_outline):
+        duplicate = True
+        k = curr + 1
+        while (k < len(merged_outline)) and duplicate is True:
+            if merged_outline[curr][1] == merged_outline[k][1]:
+                merged_outline.pop(k)
+                duplicate = True
+            else:
+                duplicate = False
+        curr += 1
+
+    return merged_outline
 
 def getOutline(left, right, tuples):
     if left > right:
@@ -52,11 +64,17 @@ def getOutline(left, right, tuples):
         x1 = tuples[left][0]
         x2 = tuples[left][1]
         h = tuples[left][2]
+
+        e1 = [x1, h]
+        e2 = [x2, 0]
         # This is where you add the max height with x1 and 0 with x2
-        return [[x1, h], [x2, 0]]
+        m = []
+        m.append(e1)
+        m.append(e2)
+        return m
     else:
         # General case where you recurse
-        middle = int((left+right)/2)
+        middle = (left+right)//2
         # Recursively create the right and the left outlines
         left_outline = getOutline(left, middle, tuples)
         right_outline = getOutline(middle+1, right, tuples)
@@ -77,7 +95,8 @@ for _ in range(n):
 	tuples.append((left, right, height))
 
 # TODO: implement your algorithm
-solution = [ (1,3), (3, 7) ]
+solution = getOutline(0, len(tuples)-1, tuples)
+
 
 # output one line for each point (x,y) in the solution
 # (your program should not output any other text)
